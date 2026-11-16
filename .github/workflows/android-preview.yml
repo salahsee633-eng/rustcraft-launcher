@@ -46,9 +46,19 @@ jobs:
       - name: Install cargo-ndk
         run: cargo install cargo-ndk --locked
 
+      - name: Verify Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          ls -la "$ANDROID_HOME" | head
+          find "$ANDROID_HOME/platforms" -maxdepth 2 -name android.jar 2>/dev/null | sort -V | tail -5
+
       - name: Build Rust library
         run: |
-          cargo ndk -t arm64-v8a \
+          JAR=$(find "$ANDROID_HOME/platforms" -name android.jar 2>/dev/null | sort -V | tail -1)
+          test -f "$JAR"
+          echo "Using android.jar: $JAR"
+          ANDROID_JAR="$JAR" cargo ndk -t arm64-v8a \
             -o android/app/src/main/jniLibs \
             build -p rustcraft-ui --release \
             --no-default-features --features android
