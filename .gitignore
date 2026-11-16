@@ -8,6 +8,7 @@ android/app/src/main/assets/jre8.zip
 android/app/src/main/assets/bridge.jar
 android/app/src/main/jniLibs/
 *.keystore
+!android/app/rustcraft-debug.keystore
 *.apk
 *.aab
 .DS_Store

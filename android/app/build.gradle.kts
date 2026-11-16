@@ -11,7 +11,7 @@ android {
         applicationId = "org.rustcraft.launcher"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
+        versionCode = 2
         versionName = "0.1.0"
 
         ndk {
@@ -24,7 +24,23 @@ android {
     sourceSets["main"].jniLibs.srcDirs("src/main/jniLibs")
     sourceSets["main"].manifest.srcFile("src/main/AndroidManifest.xml")
 
+    // A stable preview key, checked in on purpose: GitHub Actions creates a
+    // random debug key per run, which would force an uninstall (and wipe the
+    // game data) on every update. This key is for sideloaded previews only;
+    // a Play/release build will use its own private key.
+    signingConfigs {
+        create("preview") {
+            storeFile = file("rustcraft-debug.keystore")
+            storePassword = "android"
+            keyAlias = "rustcraftdebug"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("preview")
+        }
         release {
             isMinifyEnabled = false
         }
