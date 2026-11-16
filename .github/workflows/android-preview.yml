@@ -56,8 +56,10 @@ jobs:
       - name: Cache JRE pack
         uses: actions/cache@v4
         with:
-          path: /tmp/pojav.apk
-          key: pojav-jre8-gladiolus-v1
+          path: |
+            /tmp/pojav.apk
+            /tmp/jdk8.tar.gz
+          key: pojav-jre8-gladiolus-jdk8-v1
 
       - name: Prepare bundled JRE 8
         run: |
@@ -67,13 +69,27 @@ jobs:
             curl -fL --retry 3 -o /tmp/pojav.apk \
               https://github.com/PojavLauncherTeam/PojavLauncher/releases/download/gladiolus/PojavLauncher.apk
           fi
+          if [ ! -s /tmp/jdk8.tar.gz ]; then
+            curl -fL --retry 3 -o /tmp/jdk8.tar.gz \
+              "https://api.adoptium.net/v3/binary/latest/8/ga/linux/x64/jdk/hotspot/normal/eclipse"
+          fi
 
-          rm -rf /tmp/pojav-extract /tmp/jre8 /tmp/bridge-classes
-          mkdir -p /tmp/pojav-extract /tmp/jre8 /tmp/bridge-classes \
+          rm -rf /tmp/pojav-extract /tmp/jre8 /tmp/bridge-classes /tmp/jdk8
+          mkdir -p /tmp/pojav-extract /tmp/jre8 /tmp/bridge-classes /tmp/jdk8 \
             android/app/src/main/assets
           unzip -q /tmp/pojav.apk 'assets/components/jre/*' -d /tmp/pojav-extract
           tar -xJf /tmp/pojav-extract/assets/components/jre/universal.tar.xz -C /tmp/jre8
           tar -xJf /tmp/pojav-extract/assets/components/jre/bin-arm64.tar.xz -C /tmp/jre8
+
+          # JRE8 ships compressed .pack files. Unpack them with a host JDK 8
+          # tool; Android cannot execute binaries from app storage.
+          tar -xzf /tmp/jdk8.tar.gz -C /tmp/jdk8 --strip-components=1
+          UNPACK200=$(find /tmp/jdk8 -name unpack200 -type f | head -1)
+          echo "using $UNPACK200"
+          find /tmp/jre8 -name '*.pack' -print0 | while IFS= read -r -d '' pack; do
+            "$UNPACK200" "$pack" "${pack%.pack}"
+            rm -f "$pack"
+          done
 
           # The pack contains one relative symlink; replace it with the real
           # file so the on-device unzip can stay simple.

@@ -3914,9 +3914,11 @@ name = "rustcraft-ui"
 version = "0.1.0"
 dependencies = [
  "android-activity 0.6.1",
+ "libc",
  "rustcraft-core",
  "slint",
  "slint-build",
+ "zip",
 ]
 
 [[package]]
