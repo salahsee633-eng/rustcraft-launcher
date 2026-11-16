@@ -1,0 +1,36 @@
+[package]
+name = "rustcraft-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "rustcraft_ui"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "rustcraft-ui"
+path = "src/main.rs"
+required-features = ["desktop"]
+
+[features]
+default = ["desktop"]
+desktop = ["slint/backend-winit", "dep:rustcraft-core"]
+android = [
+    "slint/backend-android-activity-06",
+    "dep:android-activity",
+    "dep:rustcraft-core",
+]
+
+[dependencies]
+slint = { version = "1.8", default-features = false, features = [
+    "std",
+    "compat-1-2",
+    "renderer-software",
+] }
+rustcraft-core = { path = "../core", optional = true }
+android-activity = { version = "0.6", features = ["native-activity"], optional = true }
+
+[build-dependencies]
+slint-build = "1.8"

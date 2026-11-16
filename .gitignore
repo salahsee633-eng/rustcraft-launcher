@@ -1,0 +1,9 @@
+/target
+.cargo/
+.gradle/
+android/build/
+android/app/build/
+*.keystore
+*.apk
+*.aab
+.DS_Store

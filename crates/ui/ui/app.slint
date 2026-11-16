@@ -1,0 +1,292 @@
+// Legacy skin, deliberately close to the first PojavLauncher releases:
+// dark stone panels, bevelled buttons, one green accent, pixel-ish monospace.
+
+import { ListView } from "std-widgets.slint";
+
+export struct VersionItem {
+    id: string,
+    kind: string,
+    installed: bool,
+}
+
+component BevelButton inherits Rectangle {
+    in property <string> text: "";
+    in property <bool> primary: false;
+    in property <bool> interactive: true;
+    in property <length> btn-height: 46px;
+    callback clicked();
+
+    height: root.btn-height;
+    background: root.primary ? #3f8f2e : #343434;
+    border-width: 1px;
+    border-color: #0b0b0b;
+    opacity: root.interactive ? 1.0 : 0.45;
+
+    Rectangle {
+        x: 1px;
+        y: 1px;
+        width: parent.width - 2px;
+        height: 2px;
+        background: root.primary ? #72d857 : #5a5a5a;
+    }
+    Rectangle {
+        x: 1px;
+        y: parent.height - 3px;
+        width: parent.width - 2px;
+        height: 2px;
+        background: root.primary ? #245c17 : #141414;
+    }
+    Text {
+        text: root.text;
+        color: #f2f2f2;
+        font-size: 13px;
+        font-weight: 700;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    TouchArea {
+        clicked => {
+            if (root.interactive) {
+                root.clicked();
+            }
+        }
+    }
+}
+
+component Panel inherits Rectangle {
+    background: #1f1f1f;
+    border-width: 1px;
+    border-color: #0a0a0a;
+    Rectangle {
+        x: 1px;
+        y: 1px;
+        width: parent.width - 2px;
+        height: 1px;
+        background: #3b3b3b;
+    }
+    @children
+}
+
+export component AppWindow inherits Window {
+    title: "RustCraft Launcher";
+    width: 420px;
+    height: 820px;
+    background: #121212;
+    default-font-family: "monospace";
+
+    in property <[VersionItem]> versions;
+    in-out property <int> selected: 0;
+    in property <string> account-name: "NOT SIGNED IN";
+    in property <string> status-text: "Ready.";
+    in property <bool> busy: false;
+
+    callback play();
+    callback select(int);
+    callback login();
+    callback refresh();
+    callback settings();
+    callback nav(string);
+
+    VerticalLayout {
+        padding: 12px;
+        spacing: 10px;
+
+        // ---- title bar -------------------------------------------------
+        HorizontalLayout {
+            height: 52px;
+            spacing: 10px;
+
+            Rectangle {
+                width: 46px;
+                height: 46px;
+                background: #3f8f2e;
+                border-width: 1px;
+                border-color: #0b0b0b;
+                Text {
+                    text: "RC";
+                    color: #ffffff;
+                    font-size: 18px;
+                    font-weight: 800;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+            VerticalLayout {
+                Text {
+                    text: "RUSTCRAFT";
+                    color: #f2f2f2;
+                    font-size: 19px;
+                    font-weight: 800;
+                }
+                Text {
+                    text: "JAVA EDITION LAUNCHER";
+                    color: #76866c;
+                    font-size: 9px;
+                }
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                background: transparent;
+            }
+            BevelButton {
+                width: 132px;
+                height: 38px;
+                text: root.account-name;
+                clicked => {
+                    root.login();
+                }
+            }
+        }
+
+        // ---- news / motd ------------------------------------------------
+        Panel {
+            height: 92px;
+            VerticalLayout {
+                padding: 10px;
+                spacing: 3px;
+                Text {
+                    text: "| NEWS";
+                    color: #8fbf7f;
+                    font-size: 10px;
+                    font-weight: 700;
+                }
+                Text {
+                    text: "Java Edition on your phone. Native Rust launcher, small memory footprint, legacy interface.";
+                    color: #d6d6d6;
+                    font-size: 11px;
+                    wrap: word-wrap;
+                }
+                Text {
+                    text: "Tip: 512-1024 MB heap is enough for 1.8.9 on a 3 GB device.";
+                    color: #858585;
+                    font-size: 10px;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        // ---- version picker --------------------------------------------
+        HorizontalLayout {
+            height: 16px;
+            Text {
+                text: "VERSION";
+                color: #9a9a9a;
+                font-size: 10px;
+                font-weight: 700;
+                vertical-alignment: bottom;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                background: transparent;
+            }
+            Text {
+                text: "tap to select";
+                color: #5c5c5c;
+                font-size: 9px;
+                vertical-alignment: bottom;
+            }
+        }
+
+        Panel {
+            vertical-stretch: 1;
+            ListView {
+                for item[i] in root.versions : Rectangle {
+                    height: 44px;
+                    background: i == root.selected ? #2d5a22 : (Math.mod(i, 2) == 0 ? #242424 : #1d1d1d);
+                    border-width: 1px;
+                    border-color: i == root.selected ? #4b8f38 : transparent;
+
+                    HorizontalLayout {
+                        padding-left: 10px;
+                        padding-right: 10px;
+                        spacing: 8px;
+                        Rectangle {
+                            width: 8px;
+                            height: 8px;
+                            background: item.installed ? #5dc244 : #5a3a2a;
+                            border-width: 1px;
+                            border-color: #0b0b0b;
+                        }
+                        Text {
+                            text: item.id;
+                            color: i == root.selected ? #ffffff : #cfcfcf;
+                            font-size: 13px;
+                            vertical-alignment: center;
+                        }
+                        Rectangle {
+                            horizontal-stretch: 1;
+                            background: transparent;
+                        }
+                        Text {
+                            text: item.kind;
+                            color: #6f7d66;
+                            font-size: 9px;
+                            vertical-alignment: center;
+                        }
+                    }
+                    TouchArea {
+                        clicked => {
+                            root.select(i);
+                        }
+                    }
+                }
+            }
+        }
+
+        // ---- launch -----------------------------------------------------
+        BevelButton {
+            height: 58px;
+            primary: true;
+            text: root.busy ? "LAUNCHING..." : ">  PLAY";
+            interactive: !root.busy;
+            clicked => {
+                root.play();
+            }
+        }
+        Text {
+            text: root.status-text;
+            color: #8a8a8a;
+            font-size: 10px;
+            horizontal-alignment: center;
+            wrap: word-wrap;
+        }
+
+        // ---- bottom bar -------------------------------------------------
+        HorizontalLayout {
+            height: 34px;
+            spacing: 5px;
+            BevelButton {
+                horizontal-stretch: 1;
+                btn-height: 34px;
+                text: "HOME";
+                clicked => {
+                    root.nav("home");
+                }
+            }
+            BevelButton {
+                horizontal-stretch: 1;
+                btn-height: 34px;
+                text: "INSTANCES";
+                clicked => {
+                    root.nav("instances");
+                }
+            }
+            BevelButton {
+                horizontal-stretch: 1;
+                btn-height: 34px;
+                text: "REFRESH";
+                clicked => {
+                    root.refresh();
+                }
+            }
+            BevelButton {
+                horizontal-stretch: 1;
+                btn-height: 34px;
+                text: "SETTINGS";
+                clicked => {
+                    root.settings();
+                }
+            }
+        }
+    }
+}

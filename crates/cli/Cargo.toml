@@ -1,0 +1,13 @@
+[package]
+name = "rustcraft-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "rustcraft"
+path = "src/main.rs"
+
+[dependencies]
+rustcraft-core = { path = "../core" }
+serde_json.workspace = true
