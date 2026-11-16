@@ -25,13 +25,13 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
+      # The runner already ships the Android SDK. The old setup-android
+      # action is broken on current images (it tries to install the removed
+      # "tools" package), so use sdkmanager directly.
       - name: Install SDK packages
         run: |
-          yes | sdkmanager --licenses > /dev/null
-          sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
