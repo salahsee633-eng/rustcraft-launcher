@@ -32,5 +32,9 @@ slint = { version = "1.8", default-features = false, features = [
 rustcraft-core = { path = "../core", optional = true }
 android-activity = { version = "0.6", features = ["native-activity"], optional = true }
 
+[target.'cfg(target_os = "android")'.dependencies]
+libc = "0.2"
+zip = { workspace = true }
+
 [build-dependencies]
 slint-build = "1.8"

@@ -53,6 +53,44 @@ jobs:
           ls -la "$ANDROID_HOME" | head
           find "$ANDROID_HOME/platforms" -maxdepth 2 -name android.jar 2>/dev/null | sort -V | tail -5
 
+      - name: Cache JRE pack
+        uses: actions/cache@v4
+        with:
+          path: /tmp/pojav.apk
+          key: pojav-jre8-gladiolus-v1
+
+      - name: Prepare bundled JRE 8
+        run: |
+          set -euo pipefail
+
+          if [ ! -s /tmp/pojav.apk ]; then
+            curl -fL --retry 3 -o /tmp/pojav.apk \
+              https://github.com/PojavLauncherTeam/PojavLauncher/releases/download/gladiolus/PojavLauncher.apk
+          fi
+
+          rm -rf /tmp/pojav-extract /tmp/jre8 /tmp/bridge-classes
+          mkdir -p /tmp/pojav-extract /tmp/jre8 /tmp/bridge-classes \
+            android/app/src/main/assets
+          unzip -q /tmp/pojav.apk 'assets/components/jre/*' -d /tmp/pojav-extract
+          tar -xJf /tmp/pojav-extract/assets/components/jre/universal.tar.xz -C /tmp/jre8
+          tar -xJf /tmp/pojav-extract/assets/components/jre/bin-arm64.tar.xz -C /tmp/jre8
+
+          # The pack contains one relative symlink; replace it with the real
+          # file so the on-device unzip can stay simple.
+          rm /tmp/jre8/lib/aarch64/server/libjsig.so
+          cp /tmp/jre8/lib/aarch64/libjsig.so /tmp/jre8/lib/aarch64/server/libjsig.so
+
+          rm -f android/app/src/main/assets/jre8.zip
+          (cd /tmp/jre8 && zip -qry "$GITHUB_WORKSPACE/android/app/src/main/assets/jre8.zip" .)
+
+          javac -source 8 -target 8 -encoding UTF-8 \
+            -d /tmp/bridge-classes \
+            android/bridge/src/rustcraft/BridgeTest.java
+          rm -f android/app/src/main/assets/bridge.jar
+          jar cf android/app/src/main/assets/bridge.jar -C /tmp/bridge-classes .
+
+          ls -lh android/app/src/main/assets
+
       - name: Build Rust library
         run: |
           JAR=$(find "$ANDROID_HOME/platforms" -name android.jar 2>/dev/null | sort -V | tail -1)

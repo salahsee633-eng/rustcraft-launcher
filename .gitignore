@@ -1,8 +1,12 @@
 /target
+/dist/
 .cargo/
 .gradle/
 android/build/
 android/app/build/
+android/app/src/main/assets/jre8.zip
+android/app/src/main/assets/bridge.jar
+android/app/src/main/jniLibs/
 *.keystore
 *.apk
 *.aab

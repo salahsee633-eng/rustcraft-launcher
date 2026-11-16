@@ -6,6 +6,9 @@
 
 slint::include_modules!();
 
+#[cfg(feature = "android")]
+mod android_bridge;
+
 use slint::{Model, ModelRc, VecModel};
 
 pub fn build_ui() -> Result<AppWindow, slint::PlatformError> {
@@ -15,6 +18,9 @@ pub fn build_ui() -> Result<AppWindow, slint::PlatformError> {
     ui.set_versions(ModelRc::new(VecModel::from(versions)));
     ui.set_selected(0);
     ui.set_account_name("NOT SIGNED IN".into());
+    #[cfg(feature = "android")]
+    ui.set_status_text("M3.1: press PLAY to test the JVM bridge.".into());
+    #[cfg(not(feature = "android"))]
     ui.set_status_text("Ready. Install a version, then press PLAY.".into());
 
     let weak = ui.as_weak();
@@ -74,6 +80,9 @@ pub fn build_ui() -> Result<AppWindow, slint::PlatformError> {
         let version_id = item.id.to_string();
 
         ui.set_busy(true);
+        #[cfg(feature = "android")]
+        ui.set_status_text("Testing JVM bridge (first run unpacks the runtime)...".into());
+        #[cfg(not(feature = "android"))]
         ui.set_status_text(format!("Launching {version_id}...").into());
 
         let weak = weak.clone();
@@ -170,9 +179,14 @@ fn try_launch(version_id: &str) -> String {
     }
 }
 
-#[cfg(not(feature = "desktop"))]
+#[cfg(all(feature = "android", not(feature = "desktop")))]
 fn try_launch(_version_id: &str) -> String {
-    "Android JVM bridge is milestone M3; build the desktop target to test launching.".to_string()
+    android_bridge::self_test()
+}
+
+#[cfg(not(any(feature = "desktop", feature = "android")))]
+fn try_launch(_version_id: &str) -> String {
+    "This build has no launcher backend enabled.".to_string()
 }
 
 #[cfg(feature = "desktop")]
@@ -195,6 +209,7 @@ mod android {
     /// Entry point used by `android-activity` (NativeActivity).
     #[no_mangle]
     pub fn android_main(app: android_activity::AndroidApp) {
+        super::android_bridge::init(app.clone());
         slint::android::init(app).expect("failed to initialise Slint Android backend");
         let ui = build_ui().expect("failed to build UI");
         ui.run().expect("UI loop failed");
