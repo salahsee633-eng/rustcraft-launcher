@@ -36,14 +36,15 @@
 
 ## M3 — جسر JVM على أندرويد (أصعب مرحلة)
 
-- [ ] بناء OpenJDK arm64 مصغّر بـ jlink ووضعه في `jniLibs`/assets.
-- [ ] `JNI_CreateJavaVM` من Rust داخل عملية NativeActivity.
+- [x] **M3.1:** JRE8 arm64 مضمّن في الـAPK، يُستخرج أول تشغيل، ويبدأ عبر
+      `JLI_Launch` (بدل `JNI_CreateJavaVM`) ويشغّل `BridgeTest` بنجاح.
 - [ ] تمرير `ANativeWindow` إلى GLFW stub (LWJGL fork).
 - [ ] استبدال LWJGL المكتبي بنسخة أندرويد في الـ classpath
       (`LaunchOptions.classpath_exclude = ["org.lwjgl"]`).
 - [ ] gl4es كأول renderer + `-Dorg.lwjgl.opengl.libname=libgl4es.so`.
 - [ ] إدخال لمس أساسي (مؤشر + نقر).
 - [ ] إغلاق/استئناف نظيف للـ JVM.
+- [ ] لاحقاً: استبدال JRE8 الكامل بـ jlink مصغّر لتقليل الحجم والذاكرة.
 
 **إنجاز:** 1.8.9 تفتح القائمة الرئيسية على جهاز arm64 حقيقي، ثم عالم جديد.
 
