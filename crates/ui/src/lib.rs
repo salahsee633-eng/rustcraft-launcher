@@ -8,6 +8,8 @@ slint::include_modules!();
 
 #[cfg(feature = "android")]
 mod android_bridge;
+#[cfg(feature = "android")]
+mod android_diag;
 
 use slint::{Model, ModelRc, VecModel};
 
@@ -209,9 +211,27 @@ mod android {
     /// Entry point used by `android-activity` (NativeActivity).
     #[no_mangle]
     pub fn android_main(app: android_activity::AndroidApp) {
-        super::android_bridge::init(app.clone());
-        slint::android::init(app).expect("failed to initialise Slint Android backend");
-        let ui = build_ui().expect("failed to build UI");
-        ui.run().expect("UI loop failed");
+        android_diag::install(app.clone());
+        android_diag::log(&app, "android_main: start");
+
+        android_bridge::init(app.clone());
+        if let Err(err) = slint::android::init(app.clone()) {
+            android_diag::toast_error(&app, "Slint init failed", &err.to_string());
+            return;
+        }
+        android_diag::log(&app, "android_main: platform ready");
+
+        let ui = match build_ui() {
+            Ok(ui) => ui,
+            Err(err) => {
+                android_diag::toast_error(&app, "UI build failed", &err.to_string());
+                return;
+            }
+        };
+        android_diag::log(&app, "android_main: UI ready");
+
+        if let Err(err) = ui.run() {
+            android_diag::toast_error(&app, "UI loop failed", &err.to_string());
+        }
     }
 }
