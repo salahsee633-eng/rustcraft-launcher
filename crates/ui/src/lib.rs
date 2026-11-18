@@ -205,7 +205,9 @@ fn find_java() -> std::path::PathBuf {
 
 #[cfg(target_os = "android")]
 mod android {
-    use super::build_ui;
+    use crate::android_bridge;
+    use crate::android_diag;
+    use crate::build_ui;
     use slint::ComponentHandle;
 
     /// Entry point used by `android-activity` (NativeActivity).
