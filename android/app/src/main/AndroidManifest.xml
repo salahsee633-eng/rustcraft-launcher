@@ -5,6 +5,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Only needed on Android 8.1 and older; Android 10+ uses MediaStore. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
 
     <uses-feature
         android:glEsVersion="0x00030000"
@@ -19,7 +23,7 @@
         <!-- android-activity uses the platform NativeActivity; Rust exports
              `android_main` and the library name is set below. -->
         <activity
-            android:name="android.app.NativeActivity"
+            android:name="org.rustcraft.LauncherActivity"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|density|uiMode"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
